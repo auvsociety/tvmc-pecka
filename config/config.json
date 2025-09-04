@@ -1,0 +1,22 @@
+{
+    "thrusterSpec": {
+        "noOfThrusters": 6,
+        "minThrust": -100,
+        "maxThrust": 100,
+        "fullThrust": 100,
+        "thrustMaps": ["t200", "t200", "t200", "t200", "t200", "t200"]
+    },
+    "pwmThrustMaps": {
+        "t200": "./t200.csv"
+    },
+    "pwmOffset": 0,
+    "thrustVectors": {
+        "surge": [0.795, 1, -0.52, 0, 0, 0],
+        "sway": [0, 0, 0, 0, 0, 0, 0],
+        "heave": [0, 0, 0, 0.41, 0.57, 0.57],
+        "yaw": [0, -0.6, -0.6, 0, 0, 0],
+        "pitch": [0,0,0,0.16, -0.3, -0.3],
+        "roll": [0, 0, 0, 0, 0.5, 0.5]
+    }
+}
+

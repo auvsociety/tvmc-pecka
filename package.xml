@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>pecka_tvmc</name>
+  <version>0.0.1</version>
+  <description>TVMC - migrated to ROS 2 Humble</description>
+
+  <maintainer email="auv.society@iiitdm.ac.in">Pecka</maintainer>
+  <license>MIT</license>
+
+  <!-- Build tool -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core dependencies -->
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>pecka_tvmc_msg</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <member_of_group>rosidl_interface_packages</member_of_group>
+  </export>
+</package>
+
