@@ -1,7 +1,7 @@
 #include <iostream>
 #include "controller.h"
 
-namespace msg = rose_tvmc_msg;
+namespace msg = pecka_tvmc_msg;
 
 MotionController::MotionController(ros::NodeHandle *nhx)
 {
@@ -204,8 +204,8 @@ float MotionController::limitToRange(float value, float minimum, float maximum)
 int main(int argc, char **argv)
 {
     // initialize ros node stuff
-    ros::init(argc, argv, "rose_tvmc");
-    ros::NodeHandle nh("rose_tvmc");
+    ros::init(argc, argv, "pecka_tvmc");
+    ros::NodeHandle nh("pecka_tvmc");
     ros::Rate rate(1);
 
     // make a motion controller instance

@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 ThrusterConfig loadThrusterConfig()
 {
-    std::string path = ros::package::getPath("rose_tvmc") + "/config/config.json";
+    std::string path = ros::package::getPath("pecka_tvmc") + "/config/config.json";
     std::ifstream f(path);
 
     ThrusterConfig config;
@@ -62,7 +62,7 @@ ThrusterConfig loadThrusterConfig()
     {
         PWMThrustMap m;
 
-        std::string tmpath = ros::package::getPath("rose_tvmc") + "/config/" + map.value().get<std::string>();
+        std::string tmpath = ros::package::getPath("pecka_tvmc") + "/config/" + map.value().get<std::string>();
         io::CSVReader<2> csv(tmpath);
         int pwm;
         float thrust;

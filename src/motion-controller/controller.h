@@ -5,14 +5,14 @@
 #include "../thruster-config/thruster_config.h"
 #include <vector>
 
-#include "rose_tvmc_msg/Command.h"
-#include "rose_tvmc_msg/ControlMode.h"
-#include "rose_tvmc_msg/CurrentPoint.h"
-#include "rose_tvmc_msg/DoF.h"
-#include "rose_tvmc_msg/PidConstants.h"
-#include "rose_tvmc_msg/PidLimits.h"
-#include "rose_tvmc_msg/TargetPoint.h"
-#include "rose_tvmc_msg/Thrust.h"
+#include "pecka_tvmc_msg/Command.h"
+#include "pecka_tvmc_msg/ControlMode.h"
+#include "pecka_tvmc_msg/CurrentPoint.h"
+#include "pecka_tvmc_msg/DoF.h"
+#include "pecka_tvmc_msg/PidConstants.h"
+#include "pecka_tvmc_msg/PidLimits.h"
+#include "pecka_tvmc_msg/TargetPoint.h"
+#include "pecka_tvmc_msg/Thrust.h"
 
 #define CLOSED_LOOP_MODE 0
 #define OPEN_LOOP_MODE 1

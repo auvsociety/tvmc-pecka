@@ -104,8 +104,8 @@ int main(int argc, char **argv)
     ROS_INFO("Loaded Thruster configuration.");
 
     // initialize ros node stuff
-    ros::init(argc, argv, "rose_pvmc");
-    ros::NodeHandle nh("rose_tvmc");
+    ros::init(argc, argv, "pecka_pvmc");
+    ros::NodeHandle nh("pecka_tvmc");
 
     msg = new std_msgs::Int32MultiArray;
     msg->data.resize(config.spec.number_of_thrusters);

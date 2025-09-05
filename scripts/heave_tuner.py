@@ -4,7 +4,7 @@ import time
 from std_msgs.msg import Float64, Float32MultiArray
 
 THRUSTER = 6
-THRUST_TOPIC = "/rose_tvmc/thrust"
+THRUST_TOPIC = "/pecka_tvmc/thrust"
 DEPTH_TOPIC = "/depth_data"
 THRUST_K = 2.90 / 100
 MASS = 18
@@ -45,7 +45,7 @@ def subx(tx: Float32MultiArray):
     pub.publish(depth_msg)
 
 
-sub = rospy.Subscriber("/rose_tvmc/thrust", Float32MultiArray, subx, queue_size=1)
+sub = rospy.Subscriber("/pecka_tvmc/thrust", Float32MultiArray, subx, queue_size=1)
 
 pub.publish(depth_msg)
 
