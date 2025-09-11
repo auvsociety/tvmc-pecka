@@ -2,7 +2,7 @@
 
 The Thrustered Vehicle Motion Controller.
 
-This is a upgrade of rose_tvmc [TVMC](https://github.com/auvsocietyiiitdm/tvmc.git). This code is migrated to ROS2.
+This is a upgrade of rose_tvmc [TVMC](https://github.com/auvsociety/tvmc). This code is migrated to ROS2.
 
 Key modules like roscpp and rospy are replaced with their ROS2 equivalent rclcpp and rclpy.
 
