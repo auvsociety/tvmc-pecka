@@ -1,26 +1,31 @@
 #include "PID_controller.h"
+
 #include <limits>
-#include <iostream>
-#include <chrono>
-#include <math.h>
+#include <cmath>
+#include <rclcpp/rclcpp.hpp>
 
 PIDController::PIDController()
+: pid_clock_(RCL_SYSTEM_TIME)
 {
     Kp_ = Ki_ = Kd_ = Ko_ = 0;
     p_ = i_ = d_ = 0;
+
     integral_min_ = output_min_ = std::numeric_limits<float>::min();
     integral_max_ = output_max_ = std::numeric_limits<float>::max();
+
     prev_time_ = current_time_ = pid_clock_.now();
+
     error_ = prev_error_ = 0;
+    reset_ = true;
 }
 
 PIDController::~PIDController()
 {
 }
 
-void PIDController::setConstants(float Kp, float Ki, float Kd, float acceptable_error, float Ko)
+void PIDController::setConstants(float Kp, float Ki, float Kd,
+                                 float acceptable_error, float Ko)
 {
-
     Kp_ = Kp;
     Ki_ = Ki;
     Kd_ = Kd;
@@ -29,9 +34,9 @@ void PIDController::setConstants(float Kp, float Ki, float Kd, float acceptable_
     reset();
 }
 
-void PIDController::setMinMaxLimits(float output_min, float output_max, float integral_min, float integral_max)
+void PIDController::setMinMaxLimits(float output_min, float output_max,
+                                    float integral_min, float integral_max)
 {
-
     output_min_ = output_min;
     output_max_ = output_max;
     integral_min_ = integral_min;
@@ -41,7 +46,6 @@ void PIDController::setMinMaxLimits(float output_min, float output_max, float in
 
 void PIDController::setCurrentValue(float current_value)
 {
-
     current_value_ = current_value;
 }
 
@@ -56,48 +60,46 @@ void PIDController::setAngular(bool angular)
 }
 
 float PIDController::shortestAngularPath(float target, float current)
-{   
+{
     float value;
-    value = std::fmod(target - current + PID_ANGULAR_WRAPAROUND, PID_ANGULAR_WRAPAROUND);
-    if (value > PID_ANGULAR_WRAPAROUND/2.0) value -= PID_ANGULAR_WRAPAROUND;
+    value = std::fmod(target - current + PID_ANGULAR_WRAPAROUND,
+                      PID_ANGULAR_WRAPAROUND);
+
+    if (value > PID_ANGULAR_WRAPAROUND / 2.0f)
+        value -= PID_ANGULAR_WRAPAROUND;
+
     return value;
 }
+
 float PIDController::updateOutput()
 {
     current_time_ = pid_clock_.now();
-    time_difference_ = (float)std::chrono::duration_cast<std::chrono::milliseconds>(current_time_ - prev_time_).count();
+
+    time_difference_ =
+        (current_time_ - prev_time_).nanoseconds() / 1e6f;  // ms
+
     prev_time_ = current_time_;
 
-    // wrap around angles if required
+    // Angular wrap handling
     if (angular_)
-    {
-        // error_ = std::fmod(target_value_ - current_value_, PID_ANGULAR_WRAPAROUND);
-
-        // gomma fmod doesn't module negative properly
-        // if (error_ < 0)
-        //     error_ += PID_ANGULAR_WRAPAROUND;
-
-        // if (error_ > PID_ANGULAR_WRAPAROUND / 2)
-        //     error_ -= PID_ANGULAR_WRAPAROUND;
-
         error_ = shortestAngularPath(target_value_, current_value_);
-    }
-
     else
         error_ = target_value_ - current_value_;
 
-    if ((error_ >= 0) && (error_ <= acceptable_error_))
+    if ((error_ >= 0 && error_ <= acceptable_error_) ||
+        (error_ < 0 && error_ >= -acceptable_error_))
+    {
         error_ = 0;
-    else if ((error_ < 0) && (error_ >= -acceptable_error_))
-        error_ = 0;
+    }
 
+    // Proportional
     p_ = Kp_ * error_;
 
+    // Integral
     i_ += Ki_ * error_ * time_difference_;
-    
-
     i_ = limitToRange(i_, integral_min_, integral_max_);
 
+    // Derivative
     if (reset_)
     {
         d_ = 0;
@@ -105,7 +107,9 @@ float PIDController::updateOutput()
     }
     else if (error_ != 0)
     {
-        d_ = time_difference_ ? Kd_ * (error_ - prev_error_) / (time_difference_) : 0;
+        d_ = time_difference_
+                 ? Kd_ * (error_ - prev_error_) / time_difference_
+                 : 0;
         prev_error_ = error_;
     }
 
@@ -133,18 +137,13 @@ void PIDController::reset()
     prev_time_ = current_time_ = pid_clock_.now();
     reset_ = true;
 }
+
 float PIDController::limitToRange(float value, float minimum, float maximum)
 {
     if (value > maximum)
-    {
         return maximum;
-    }
     else if (value < minimum)
-    {
         return minimum;
-    }
     else
-    {
         return value;
-    }
 }

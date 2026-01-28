@@ -3,10 +3,12 @@
 
 #include <map>
 #include <vector>
-#include <chrono>
-#include <ros/console.h>
+#include <string>
 
-typedef struct PWMThrustMap {
+// No ROS headers needed here — pure data + loader declaration
+
+typedef struct PWMThrustMap
+{
     std::vector<float> thrust;
     std::vector<int> pwm;
 } PWMThrustMap;
@@ -49,4 +51,4 @@ typedef struct ThrusterConfig
 
 ThrusterConfig loadThrusterConfig();
 
-#endif
+#endif // THRUSTER_CONFIG_H

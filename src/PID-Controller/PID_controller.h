@@ -1,7 +1,8 @@
 #ifndef PID_CONTROLLER_H
 #define PID_CONTROLLER_H
-#include <chrono>
-#include <thread>
+
+#include <limits>
+#include <rclcpp/rclcpp.hpp>
 
 #define PID_ANGULAR_WRAPAROUND 360.0f
 
@@ -14,8 +15,8 @@ private:
     float output_max_, output_min_;
     float error_, prev_error_, acceptable_error_;
 
-    std::chrono::high_resolution_clock pid_clock_;
-    std::chrono::time_point<std::chrono::high_resolution_clock> prev_time_, current_time_;
+    rclcpp::Clock pid_clock_;
+    rclcpp::Time prev_time_, current_time_;
 
     float time_difference_;
     float p_, i_, d_;
@@ -34,28 +35,32 @@ public:
 
     /**
      * @brief Sets the constants for the PID controller.
-     * 
+     *
      * @param Kp The proportional gain.
      * @param Ki The integral gain.
      * @param Kd The derivative gain.
      * @param acceptable_error The acceptable error threshold.
      * @param Ko A fixed offset, if required. (optional, default value is 0).
      */
-    void setConstants(float Kp, float Ki, float Kd, float acceptable_error, float Ko = 0);
-    
+    void setConstants(float Kp, float Ki, float Kd,
+                      float acceptable_error, float Ko = 0);
+
     /**
      * @brief Sets the minimum and maximum limits for the output and integral terms of the PID controller.
-     * 
+     *
      * @param output_min The minimum value for the output term.
      * @param output_max The maximum value for the output term.
      * @param integral_min The minimum value for the integral term.
      * @param integral_max The maximum value for the integral term.
      */
-    void setMinMaxLimits(float output_min, float output_max, float integral_min, float integral_max);
+    void setMinMaxLimits(float output_min, float output_max,
+                         float integral_min, float integral_max);
+
     void setCurrentValue(float current_value);
     void setTargetValue(float target_value);
 
     float shortestAngularPath(float target, float current);
+
     float updateOutput();
     float updateOutput(float current_value);
     float updateOutput(float current_value, float target_value);
@@ -63,4 +68,4 @@ public:
     void reset();
 };
 
-#endif
+#endif // PID_CONTROLLER_H

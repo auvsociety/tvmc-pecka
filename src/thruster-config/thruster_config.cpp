@@ -1,16 +1,32 @@
 #include "thruster_config.h"
+
 #include <fstream>
+#include <cstdlib>
+
 #include "json.hpp"
 #include "csv.h"
-#include <ros/package.h>
-#include <ros/console.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 using json = nlohmann::json;
 
 ThrusterConfig loadThrusterConfig()
 {
-    std::string path = ros::package::getPath("pecka_tvmc") + "/config/config.json";
+    // ROS 2 package path
+    std::string path =
+        ament_index_cpp::get_package_share_directory("pecka_tvmc") +
+        "/config/config.json";
+
     std::ifstream f(path);
+
+    if (!f.is_open())
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("thruster_config"),
+                     "Unable to open config file: %s",
+                     path.c_str());
+        std::exit(1);
+    }
 
     ThrusterConfig config;
 
@@ -18,20 +34,23 @@ ThrusterConfig loadThrusterConfig()
 
     if (!file.contains("thrusterSpec"))
     {
-        ROS_ERROR("Unable to find thruster spec.");
-        exit(1);
+        RCLCPP_ERROR(rclcpp::get_logger("thruster_config"),
+                     "Unable to find thruster spec.");
+        std::exit(1);
     }
 
     if (!file.contains("thrustVectors"))
     {
-        ROS_ERROR("Unable to find thrust vectors.");
-        exit(1);
+        RCLCPP_ERROR(rclcpp::get_logger("thruster_config"),
+                     "Unable to find thrust vectors.");
+        std::exit(1);
     }
 
     if (!file.contains("pwmThrustMaps"))
     {
-        ROS_ERROR("Unable to find thrust maps.");
-        exit(1);
+        RCLCPP_ERROR(rclcpp::get_logger("thruster_config"),
+                     "Unable to find thrust maps.");
+        std::exit(1);
     }
 
     auto spec = file.at("thrusterSpec");
@@ -46,23 +65,26 @@ ThrusterConfig loadThrusterConfig()
     config.pwm_offset = file.at("pwmOffset");
 
     // read thruster types
-    for (auto &type: spec.at("thrustMaps").items())
-    config.spec.thruster_types.push_back(type.value().get<std::string>());
+    for (auto &type : spec.at("thrustMaps").items())
+        config.spec.thruster_types.push_back(type.value().get<std::string>());
 
-    // read thrustered vectors
+    // read thruster vectors
     config.vectors.surge = vectors.at("surge").get<std::vector<float>>();
     config.vectors.pitch = vectors.at("pitch").get<std::vector<float>>();
-    config.vectors.roll = vectors.at("roll").get<std::vector<float>>();
-    config.vectors.yaw = vectors.at("yaw").get<std::vector<float>>();
+    config.vectors.roll  = vectors.at("roll").get<std::vector<float>>();
+    config.vectors.yaw   = vectors.at("yaw").get<std::vector<float>>();
     config.vectors.heave = vectors.at("heave").get<std::vector<float>>();
-    config.vectors.sway = vectors.at("sway").get<std::vector<float>>();
+    config.vectors.sway  = vectors.at("sway").get<std::vector<float>>();
 
     // read thrust maps
     for (auto &map : thrust_maps.items())
     {
         PWMThrustMap m;
 
-        std::string tmpath = ros::package::getPath("pecka_tvmc") + "/config/" + map.value().get<std::string>();
+        std::string tmpath =
+            ament_index_cpp::get_package_share_directory("pecka_tvmc") +
+            "/config/" + map.value().get<std::string>();
+
         io::CSVReader<2> csv(tmpath);
         int pwm;
         float thrust;

@@ -1,132 +1,89 @@
 #ifndef MOTION_CONTROLLER_H
 #define MOTION_CONTROLLER_H
+
+#include <rclcpp/rclcpp.hpp>
+#include <vector>
+#include <map>
+
 #include "../PID-Controller/PID_controller.h"
 #include "../reporters/thrust.h"
 #include "../thruster-config/thruster_config.h"
-#include <vector>
 
-#include "pecka_tvmc_msg/Command.h"
-#include "pecka_tvmc_msg/ControlMode.h"
-#include "pecka_tvmc_msg/CurrentPoint.h"
-#include "pecka_tvmc_msg/DoF.h"
-#include "pecka_tvmc_msg/PidConstants.h"
-#include "pecka_tvmc_msg/PidLimits.h"
-#include "pecka_tvmc_msg/TargetPoint.h"
-#include "pecka_tvmc_msg/Thrust.h"
+// ROS 2 messages
+#include "pecka_tvmc_msg/msg/command.hpp"
+#include "pecka_tvmc_msg/msg/control_mode.hpp"
+#include "pecka_tvmc_msg/msg/current_point.hpp"
+#include "pecka_tvmc_msg/msg/do_f.hpp"
+#include "pecka_tvmc_msg/msg/pid_constants.hpp"
+#include "pecka_tvmc_msg/msg/pid_limits.hpp"
+#include "pecka_tvmc_msg/msg/target_point.hpp"
+#include "pecka_tvmc_msg/msg/thrust.hpp"
 
 #define CLOSED_LOOP_MODE 0
 #define OPEN_LOOP_MODE 1
 
-class MotionController
+namespace msg = pecka_tvmc_msg::msg;
+
+class MotionController : public rclcpp::Node
 {
-private:
-    // Node handle to handle topics
-    ros::NodeHandle *nh, *nhc;
-
-    // Thrust in each degree of motion
-    float thrust[6];
-
-    // Control modes for each degree of motion
-    float control_modes[6];
-
-    // PID controllers for each degree of freedom
-    PIDController controllers[6];
-
-    // The MotionController's copy of the Thruster config
-    ThrusterConfig config;
-
-    // The thruster map for each degree of freedom
-    std::vector<float> thruster_map[6];
-
-    // Final thrust vector for with thrust for each vector
-    std::vector<float> thrust_vector;
-
-    // Subscriber for Motion controller commands
-    ros::Subscriber sub_command, sub_control_mode, sub_current_point, sub_pid_constants, sub_pid_limits, sub_target_point, sub_thrust;
-
 public:
-    bool online = true;
-
-    MotionController(ros::NodeHandle *nh);
+    explicit MotionController();
     ~MotionController();
 
-    /**
-     * Changes control mode for each DoF
-     * 
-     * @param dof The Degree of Freedom
-     * @param mode The Control Mode
-    */
+    bool online{true};
+
+    // Control-mode management
     void setControlMode(uint8_t dof, bool mode);
 
-    /**
-     * Adjusts PID constants for each DoF
-     * 
-     * @param dof The Degree of Freedom
-     * @param kp Propotional Constant
-     * @param ki Integral Constant
-     * @param kd Derivative Constant
-     * @param acceptable_error Minimum error required for the controller to perform corrections.
-    */
-    void setPIDConstants(uint8_t dof, float kp, float ki, float kd, float acceptable_error, float ko = 0);
+    // PID tuning
+    void setPIDConstants(uint8_t dof, float kp, float ki, float kd,
+                         float acceptable_error, float ko = 0);
 
-    /**
-     * Adjusts PID limits in each DoF
-     * 
-     * @param dof The Degree of Freedom
-     * @param output_min Minimum output thrust from the controller
-     * @param output_max Maximum output thrust from the controller
-     * @param integral_min Minimum integral contribution to thrust from the controller
-     * @param integral_max Maximum integral contribution  thrust from the controller
-    */
-    void setPIDLimits(uint8_t dof, float output_min, float output_max, float integral_min, float integral_max);
+    void setPIDLimits(uint8_t dof, float output_min, float output_max,
+                      float integral_min, float integral_max);
 
-    /**
-     * Sets target values in each DoF
-     * Works only if closed loop control is enabled
-     * 
-     * @param dof The Degree of Freedom
-     * @param target Target for the PID Controller
-    */
+    // Closed-loop control
     void setTargetPoint(uint8_t dof, float target);
-    
-    /**
-     * Sets current values in each DoF
-     * Works only if closed loop control is enabled
-     * 
-     * @param dof The Degree of Freedom
-     * @param target Current value for the PID Controller
-    */
     void updateCurrentPoint(uint8_t dof, float current);
 
-    /**
-     * Manually sets thrust values in each DoF
-     * Works only if open loop control is enabled
-     * 
-     * @param dof The Degree of Freedom
-     * @param thrust Thrust value
-    */
+    // Open-loop control
     void setThrust(uint8_t dof, float thrust);
 
-    /**
-     * Resets all thrusters to zero
-    */
+    // Utility
     void resetAllThrusters();
-    
-    /**
-     * Requests an immediate refresh fromt the Thrust Reporter
-    */
     void refresh();
-
-    /**
-     * Updates all thrust values to the Thrust Reporter
-    */
     void updateThrustValues();
 
 private:
-    /**
-     * Simple clamping function
-    */
     float limitToRange(float value, float minimum, float maximum);
+
+private:
+    // Thrust per degree of freedom
+    float thrust_[6]{};
+
+    // Control mode per DoF
+    bool control_modes_[6]{};
+
+    // PID controllers
+    PIDController controllers_[6];
+
+    // Thruster configuration
+    ThrusterConfig config_;
+
+    // Thruster maps per DoF
+    std::map<uint8_t, std::vector<float>> thruster_map_;
+
+    // Final thrust vector
+    std::vector<float> thrust_vector_;
+
+    // ROS 2 subscriptions
+    rclcpp::Subscription<msg::Command>::SharedPtr sub_command_;
+    rclcpp::Subscription<msg::ControlMode>::SharedPtr sub_control_mode_;
+    rclcpp::Subscription<msg::CurrentPoint>::SharedPtr sub_current_point_;
+    rclcpp::Subscription<msg::PidConstants>::SharedPtr sub_pid_constants_;
+    rclcpp::Subscription<msg::PidLimits>::SharedPtr sub_pid_limits_;
+    rclcpp::Subscription<msg::TargetPoint>::SharedPtr sub_target_point_;
+    rclcpp::Subscription<msg::Thrust>::SharedPtr sub_thrust_;
 };
 
 #endif

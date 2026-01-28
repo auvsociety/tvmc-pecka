@@ -15,6 +15,7 @@
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>pecka_tvmc_msg</depend>
+  <depend>ament_index_cpp</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
