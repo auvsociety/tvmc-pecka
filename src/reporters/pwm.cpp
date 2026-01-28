@@ -10,15 +10,37 @@
 
 using namespace PWMReporter;
 
+// global config pointer for compute_pwm - set in PWMNode constructor
+static ThrusterConfig *g_config = nullptr;
+
+Thruster::Thruster(_1D::MonotonicInterpolator<float> &interp, float min_thrust, float max_thrust)
+    : interpolater(interp)
+{
+    this->min_thrust = min_thrust;
+    this->max_thrust = max_thrust;
+    this->clamp = std::min(std::abs(min_thrust), std::abs(max_thrust));
+}
+
+int Thruster::compute_pwm(float thrust)
+{
+    return std::round(interpolater(
+        std::min(
+            std::max(
+                clamp * thrust / g_config->spec.full_thrust,
+                this->min_thrust),
+            this->max_thrust))) + g_config->pwm_offset;
+}
+
 class PWMNode : public rclcpp::Node
 {
 public:
     PWMNode()
-        : Node("pecka_pvmc")
+        : Node("pecka_pwmc")
     {
         RCLCPP_INFO(get_logger(), "Loading Thruster configuration...");
 
         config_ = loadThrusterConfig();
+        g_config = &config_;
 
         // Create interpolators
         for (auto &map : config_.thrust_maps)
@@ -60,7 +82,7 @@ public:
             "/control/pwm", 50);
 
         sub_ = create_subscription<std_msgs::msg::Float32MultiArray>(
-            "/pecka_tvmc/control/thrust", 10,
+            "/pecka_tvmc/thrust", 10,
             std::bind(&PWMNode::thrustCallback, this, std::placeholders::_1));
 
         RCLCPP_INFO(get_logger(), "PWM Reporter node started.");

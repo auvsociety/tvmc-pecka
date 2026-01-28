@@ -24,7 +24,7 @@ void *ThrustReporterThread(void *arg)
     while (rclcpp::ok())
     {
         ThrustReporter::refresh();
-        rclcpp::spin_some(node_ptr);
+        // Note: Don't call spin_some here - main() handles spinning
         usleep(THRUST_REPORT_RATE_US);
     }
     return nullptr;
@@ -47,7 +47,7 @@ void ThrustReporter::init(rclcpp::Node::SharedPtr node)
 
     // create publisher and message
     pub = node_ptr->create_publisher<std_msgs::msg::Float32MultiArray>(
-        "/pecka_tvmc/control/thrust", 50);
+        "/pecka_tvmc/thrust", 50);
 
     msg = std::make_shared<std_msgs::msg::Float32MultiArray>();
     msg->data.resize(config.spec.number_of_thrusters);

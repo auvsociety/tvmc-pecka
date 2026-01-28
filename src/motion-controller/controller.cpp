@@ -13,9 +13,6 @@ public:
         // Load thruster configuration
         config = loadThrusterConfig();
 
-        // Initialize thrust reporter
-        ThrustReporter::init(shared_from_this());
-
         // Initialize controllers
         for (int d = 0; d < 6; d++)
         {
@@ -50,7 +47,7 @@ public:
 
         // Subscriptions
         sub_command = create_subscription<msg::Command>(
-            "control/command", qos,
+            "/pecka_tvmc/control/command", qos,
             [this](msg::Command::SharedPtr x)
             {
                 if (x->command == x->REFRESH)
@@ -62,21 +59,21 @@ public:
             });
 
         sub_control_mode = create_subscription<msg::ControlMode>(
-            "control/control_mode", qos,
+            "/pecka_tvmc/control/control_mode", qos,
             [this](msg::ControlMode::SharedPtr x)
             {
                 setControlMode(x->dof, x->mode);
             });
 
         sub_current_point = create_subscription<msg::CurrentPoint>(
-            "control/current_point", qos,
+            "/pecka_tvmc/control/current_point", qos,
             [this](msg::CurrentPoint::SharedPtr x)
             {
                 updateCurrentPoint(x->dof, x->current);
             });
 
         sub_pid_constants = create_subscription<msg::PidConstants>(
-            "control/pid_constants", qos,
+            "/pecka_tvmc/control/pid_constants", qos,
             [this](msg::PidConstants::SharedPtr x)
             {
                 setPIDConstants(
@@ -85,7 +82,7 @@ public:
             });
 
         sub_pid_limits = create_subscription<msg::PidLimits>(
-            "control/pid_limits", qos,
+            "/pecka_tvmc/control/pid_limits", qos,
             [this](msg::PidLimits::SharedPtr x)
             {
                 setPIDLimits(
@@ -94,14 +91,14 @@ public:
             });
 
         sub_target_point = create_subscription<msg::TargetPoint>(
-            "control/target_point", qos,
+            "/pecka_tvmc/control/target_point", qos,
             [this](msg::TargetPoint::SharedPtr x)
             {
                 setTargetPoint(x->dof, x->target);
             });
 
         sub_thrust = create_subscription<msg::Thrust>(
-            "control/thrust", qos,
+            "/pecka_tvmc/control/thrust", qos,
             [this](msg::Thrust::SharedPtr x)
             {
                 setThrust(x->dof, x->thrust);
@@ -115,6 +112,12 @@ public:
     }
 
     bool online{true};
+
+    void init()
+    {
+        ThrustReporter::init(shared_from_this());
+        RCLCPP_INFO(get_logger(), "ThrustReporter initialized.");
+    }
 
 private:
     void setControlMode(uint8_t dof, bool mode)
@@ -232,6 +235,7 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<MotionControllerNode>();
+    node->init();  // Initialize after construction so shared_from_this() works
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
